@@ -4,9 +4,8 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3')
-var geojson = require('geojson')
 
-var client = mqtt.connect('mqtt://192.168.1.69', {'clientId': "Server"});
+var client = mqtt.connect('mqtt://172.31.118.235', {'clientId': "Server"});
 var topics = ['+/status', '+/keepAlive']
 
 const sqlFallaBateria = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'FALLA BATERIA','2018-10-08',0)"
@@ -45,7 +44,7 @@ io.on('connection', function(socket){
                 switch (message.toString()) {
                     case '0':
                         //0 Falla de bateria
-                        socket.emit('status',idNumber+': Falla de Bateria')
+                        socket.emit('status',[idNumber,'Falla de Bateria'])
                         console.log (idNumber+": Falla de Bateria");
                         db.run(sqlFallaBateria,[idNumber], (err) =>{
                             if (err) {
@@ -57,7 +56,7 @@ io.on('connection', function(socket){
                         break;
                     case '1':
                         //1 Tapa abierta
-                        socket.emit('status',idNumber+": Tapa Abierta")
+                        socket.emit('status',[idNumber,'Tapa Abierta'])
                         console.log(idNumber+': Tapa Abierta')
                         db.run(sqlTapaAbierta,[idNumber], (err) =>{
                             if (err) {

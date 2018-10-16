@@ -1,9 +1,10 @@
 #map { 
-  width: 77%;
-  background-color: lightgreen 
+  width: 80%;
+  background-color: lightgreen ;
+  margin-left: 1%;
 }
 #right-panel {  
-    width: 22%; 
+    width: 18%; 
     background-color: lightseagreen; 
     float: right ;
     overflow-y: scroll
@@ -18,12 +19,13 @@
 
 body{
   font-family: "Roboto"; 
-  background-color: hsl(197, 100%, 50%)
+  background-color: white;
+  
 }
-
 
 footer{
   text-align: center; 
   font-size: 2vh;
-  
+  margin-top: 2vh;
+    
 }
