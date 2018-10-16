@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    
+	<title>Power Wire Monitoring</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css" />
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="main.js"></script>
+
+
+<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css"
+integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
+crossorigin=""/>
+
+<style src="https://use.fontawesome.com/releases/v5.0.13/css/all.css">
+</style>
+<style src="https://cdn.jsdelivr.net/npm/leaflet-extra-markers@1.0.6/dist/css/leaflet.extra-markers.min.css">
+</style>
+ <!-- Make sure you put this AFTER Leaflet's CSS -->
+ <script src="https://unpkg.com/leaflet@1.3.4/dist/leaflet.js"
+   integrity="sha512-nMMmRyTVoLYqjP9hrbed9S+FzjZHW5gY1TWCHA5ckwXZBadntCNs8kEqAWdrb9O7rxbCaA4lKTIWjDXZxflOcA=="
+   crossorigin=""></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-extra-markers@1.0.6/src/assets/js/leaflet.extra-markers.min.js">
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script> <!-- include socket.io client side script -->
+
+</head>
+<body>
+	<header div id="header">
+		<h2> Power Wire Monitoring</h2>
+
+	</header>
+	<div class="grid-container">
+	<span id="map" class="dashboard">
+		
+	<script>
+
+
+var map = L.map('map')
+//var map = L.map('map').setView([20.66727,-103.46276], 2);
+
+ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	maxZoom: 19,
+	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map)
+
+//funcion para recibir geojson
+
+let geojson_url = "https://raw.githubusercontent.com/delineas/leaflet-flyto-webpack-bulma/master/src/data/arboles_singulares_en_espacios_naturales.geojson"
+
+
+fetch(  geojson_url ).then(
+	
+	res => res.json()
+	
+).then(
+	data => {
+	let geojsonlayer = L.geoJson(data).addTo(map)
+	map.fitBounds(geojsonlayer.getBounds())
+	}
+)
+//fetch(geojsonFile).then( geojsonFile.addTo(map) )
+//geoJsonString.addTo(map)
+
+	</script>
+	
+	</span>
+	<span id="right-panel" class="dashboard">
+		
+	</span>
+</div>
+<footer>
+	Laboratorio de Innovacion BUAP-Intel
+</footer>
+</body>
+</html>
