@@ -26,14 +26,22 @@ crossorigin=""/>
    crossorigin=""></script>
 <script src="https://cdn.jsdelivr.net/npm/leaflet-extra-markers@1.0.6/src/assets/js/leaflet.extra-markers.min.js">
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.1.1/socket.io.js"></script> <!-- include socket.io client side script -->
+
+<!-- Compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 
 </head>
-<body>
-	<header div id="header">
-		<h2> Power Wire Monitoring</h2>
-
-	</header>
+<body class="blue lighten-3">
+	
+	<nav>
+		<div class="nav-wrapper blue">
+		  <a href="#" class="brand-logo center">Power Wire Monitoring</a>
+		  
+		</div>
+	  </nav>
 	<div class="grid-container">
 	<span id="map" class="dashboard">
 		
@@ -51,7 +59,7 @@ var map = L.map('map')
 //funcion para recibir geojson
 
 let geojson_url = "https://raw.githubusercontent.com/delineas/leaflet-flyto-webpack-bulma/master/src/data/arboles_singulares_en_espacios_naturales.geojson"
-
+//var geojson_url = require("./map.geojson");
 
 fetch(  geojson_url ).then(
 	
@@ -70,11 +78,40 @@ fetch(  geojson_url ).then(
 	
 	</span>
 	<span id="right-panel" class="dashboard">
-		
+		<table class="responsive-table">
+			<thead>
+			  <tr>
+				  <th>ID Tapa</th>
+				  <th>Incidente</th>
+			  </tr>
+			</thead>
+	
+			<tbody id="listaIncidentes">
+			  <tr>
+				<td>Alvin</td>
+				<td>Eclair</td>
+			  </tr>
+			  <tr>
+				<td>Alan</td>
+				<td>Jellybean</td>
+			  </tr>
+			  <tr>
+				<td>Jonathan</td>
+				<td>Lollipop</td>
+			  </tr>
+			  <tr>
+				<td>Jonathan</td>
+				<td>Lollipop</td>
+			  </tr>
+			  
+			  
+
+			</tbody>
+		  </table>
 	</span>
 </div>
 <footer>
-	Laboratorio de Innovacion BUAP-Intel
+	<h6>Laboratorio de Innovacion BUAP-Intel</h6>
 </footer>
 </body>
 </html>

@@ -4,6 +4,7 @@ var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3')
+var geojson = require('geojson')
 
 var client = mqtt.connect('mqtt://192.168.1.69', {'clientId': "Server"});
 var topics = ['+/status', '+/keepAlive']
@@ -12,21 +13,22 @@ const sqlFallaBateria = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDEN
 const sqlTapaAbierta = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'TAPA ABIERTA','2018-10-08',0)"
 var sqlKeepAlive = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE,ATENDIDO) VALUES((?),'REVISAR DISPOSITIVO','2018-10-08',0"
 
+
+
 app.use(express.static('public'))
 
 app.get('/', function (req, res){
     res.status(200).send("Hello World")
 })
 
-
-
-
 client.subscribe(topics);
-
 
 io.on('connection', function(socket){
     //io.emit('status',2)
+
+//    console.log(geojsonString)
     console.log('Alguien se ha conectado')
+
     if (client.on('message', function(topic, message, packet){
         var splitString = topic.split('/');
         var idNumber = splitString[0];

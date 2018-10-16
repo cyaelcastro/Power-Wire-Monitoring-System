@@ -5,15 +5,10 @@
 #right-panel {  
     width: 22%; 
     background-color: lightseagreen; 
-    float: right 
+    float: right ;
+    overflow-y: scroll
 }
 
-#header {
-  height: 8vh; 
-  width: 100%; 
-  background-color: hsl(185, 93%, 50%); 
-  text-align: center
-}
 
 .dashboard{  
   display: inline-block;
@@ -26,9 +21,9 @@ body{
   background-color: hsl(197, 100%, 50%)
 }
 
-header{
-  font-size: 3vh
-}
+
 footer{
   text-align: center; 
-  font-size: 2vh}
+  font-size: 2vh;
+  
+}
