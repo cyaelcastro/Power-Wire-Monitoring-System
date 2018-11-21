@@ -11,8 +11,10 @@ var topics = ['+/status', '+/keepAlive']
 const sqlCount = "SELECT IDTAPAS FROM TAPAS"
 const sqlFallaBateria = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'FALLA BATERIA','2018-10-08',0)"
 const sqlTapaAbierta = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'TAPA ABIERTA','2018-10-08',0)"
-const sqlUbicacionTapa = `SELECT LATITUD Latitud, LONGITUD Longitud FROM TAPAS WHERE IDTAPAS == ?`
-var sqlKeepAlive = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE,ATENDIDO) VALUES((?),'REVISAR DISPOSITIVO','2018-10-08',0"
+const sqlUbicacionTapa = "SELECT LATITUD Latitud, LONGITUD Longitud FROM TAPAS WHERE IDTAPAS == ?"
+const sqlInsertKeepAlive = "UPDATE TAPAS SET ULTIMAACTIVACION = ? WHERE IDTAPAS = ?"
+
+
 var statusTapa = 0;
 var place = [];
  
@@ -109,6 +111,28 @@ io.on('connection', function(socket){
                     break;
                     db.close()
             
+                case 'keepAlive':
+                    var db = new sqlite3.Database('tapas.db', (err) => {
+                        if (err){
+                        console.log(err.message)
+                        }
+                        console.log('Connected to db')
+                    }); 
+                    var fechaActual = new Date(Date.now())
+                    var fechaString = fechaActual.getFullYear().toString()+"-"+fechaActual.getMonth().toString()+"-"+fechaActual.getDate().toString()+" "+fechaActual.getHours().toString()+":"+fechaActual.getMinutes().toString()
+                    db.run(sqlInsertKeepAlive,[fechaString,idNumber], function(err){
+                        if (err){
+                            return console.error(err.message)
+                        }
+                        console.log("KeepAlive agregado")
+                        
+
+                        
+                        
+                        
+                    })
+
+                    break;
                 default:
                     break;
             }
