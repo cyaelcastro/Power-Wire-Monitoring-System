@@ -7,7 +7,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="style.css" />
     <script src="/socket.io/socket.io.js"></script>
-    <script src="main.js"></script>
 
 
 <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -16,8 +15,16 @@
 integrity="sha512-puBpdR0798OZvTTbP4A8Ix/l+A4dHDD0DGqYW6RQ+9jxkRFclaxxQb/SJAWZfWAkuyeQUytO7+7N4QKrDh+drA=="
 crossorigin=""/>
 
-<style src="https://use.fontawesome.com/releases/v5.0.13/css/all.css">
-</style>
+
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" 
+integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" 
+crossorigin="anonymous">
+
+<script defer src="https://use.fontawesome.com/releases/v5.4.2/js/all.js" 
+integrity="sha384-wp96dIgDl5BLlOXb4VMinXPNiB32VYBSoXOoiARzSTXY+tsK8yDTYfvdTyqzdGGN" 
+crossorigin="anonymous"></script>
+
+
 <style src="https://cdn.jsdelivr.net/npm/leaflet-extra-markers@1.0.6/dist/css/leaflet.extra-markers.min.css">
 </style>
  <!-- Make sure you put this AFTER Leaflet's CSS -->
@@ -47,36 +54,7 @@ crossorigin=""/>
 	<div class="grid-container">
 	<span id="map" class="dashboard">
 		
-	<script>
-
-
-var map = L.map('map')
-//var map = L.map('map').setView([20.66727,-103.46276], 2);
-
- L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-	maxZoom: 19,
-	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-}).addTo(map)
-
-//funcion para recibir geojson
-
-let geojson_url = "https://raw.githubusercontent.com/delineas/leaflet-flyto-webpack-bulma/master/src/data/arboles_singulares_en_espacios_naturales.geojson"
-//var geojson_url = require("./map.geojson");
-
-fetch(  geojson_url ).then(
-	
-	res => res.json()
-	
-).then(
-	data => {
-	let geojsonlayer = L.geoJson(data).addTo(map)
-	map.fitBounds(geojsonlayer.getBounds())
-	}
-)
-//fetch(geojsonFile).then( geojsonFile.addTo(map) )
-//geoJsonString.addTo(map)
-
-	</script>
+	<script src="main.js"></script>
 	
 	</span>
 	<span id="right-panel" class="dashboard cyan lighten-4">
@@ -87,16 +65,7 @@ fetch(  geojson_url ).then(
 				  <th>Incidente</th>
 			  </tr>
 			</thead>
-	
 			<tbody id="listaIncidentes">
-			  <tr>
-				<td>5</td>
-				<td>Tapa Abierta</td>
-			  </tr>
-			  <tr>
-				<td>1</td>
-				<td>Falla Bateria</td>
-			  </tr>
 			</tbody>
 		  </table>
 	</span>
