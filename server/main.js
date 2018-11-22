@@ -16,8 +16,7 @@ const sqlNoResponde = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE
 const sqlUbicacionTapa = "SELECT LATITUD Latitud, LONGITUD Longitud FROM TAPAS WHERE IDTAPAS == ?"
 const sqlInsertKeepAlive = "UPDATE TAPAS SET ULTIMAACTIVACION = ? WHERE IDTAPAS = ?"
 const sqlGetTimeKeepAlive = "SELECT IDTAPAS, ULTIMAACTIVACION FROM TAPAS"
-//const sqlGetTimeKeepAlive = "SELECT strftime('%s', 'NOW') - strftime('%s', (SELECT ULTIMAACTIVACION FROM TAPAS))"
-//const sqlGetTimeKeepAlive = "SELECT strftime('%s', (SELECT ULTIMAACTIVACION FROM TAPAS))"
+const sqlIncidentesOnStart = "SELECT IDTAPAS, DESCRIPCION FROM INCIDENTES WHERE ATENDIDO != 1"
 
 
 var statusTapa = 0;
@@ -35,7 +34,7 @@ db = new sqlite3.Database('tapas.db', (err) => {
     if (err){
       console.log(err.message)
     }
-    console.log('Connected to db')
+    console.log('Connected to db: Contando tapas')
     });                
 db.each(sqlCount,[],(err,row)=>{
     if (err){
@@ -50,18 +49,23 @@ var j = schedule.scheduleJob('*/1 * * * *', function(){
         if (err){
           console.log(err.message)
         }
-        console.log('Connected to db')
+        console.log('Connected to db: Buscando dispositivos inactivos')
         });                
     db.each(sqlGetTimeKeepAlive,[],(err,row)=>{
         if (err){
             throw err;
         }
-        console.log(row)
+        //console.log(row)
         date1 = new Date(row.ULTIMAACTIVACION)
         if(( Date.now() - date1.getTime()) > 86400000){
             //var idTapaKeep = 
             console.log("Mas de un dia")
-            client.publish(row.IDTAPAS+"/status",2)
+            //checar enviar mqtt - conversion de tipo para topic
+            //var topicKeepAlive = (row.IDTAPAS).toString()+"/status"
+            //client.publish(topicKeepAlive.toString(),2)
+            //console.log(typeof(topicKeepAlive))
+            //console.log(typeof((row.IDTAPAS).toString()))
+            console.log("Enviar MQTT "+row.IDTAPAS.toString())
         }else{
             console.log("Menos de un dia")
         }
@@ -71,10 +75,33 @@ var j = schedule.scheduleJob('*/1 * * * *', function(){
   });
 
 io.on('connection', function(socket){
-    //io.emit('status',2)
     
-//    console.log(geojsonString)
+    db = new sqlite3.Database('tapas.db', (err) => {
+        if (err){
+          console.log(err.message)
+        }
+        console.log('Connected to db: Enviando revisiones pendientes')
+        });                
+    db.each(sqlIncidentesOnStart,[],(err,row)=>{
+        if (err){
+            throw err;
+        }
+        console.log(row)
+        db.each(sqlUbicacionTapa, [row.IDTAPAS], (err,row2) => {
+            if (err){
+                console.log("Error getLatLong");
+                throw err;     
+            }
+            socket.emit('status',[row.IDTAPAS,row.DESCRIPCION,[row2.Latitud, row2.Longitud]])
+        });
+        
+        
+    })
+    
+
     console.log('Alguien se ha conectado')
+
+
     
     if (client.on('message', function(topic, message, packet){
         var splitString = topic.split('/');
@@ -87,7 +114,7 @@ io.on('connection', function(socket){
                     if (err){
                     console.log(err.message)
                     }
-                    console.log('Connected to db')
+                    console.log('Connected to db: Se recibio mensaje')
                     });                
                     switch (message.toString()) {
                         case '0':
@@ -147,7 +174,7 @@ io.on('connection', function(socket){
                                     console.log("Error getLatLong");
                                     throw err;     
                                 }
-                                socket.emit('status',[idNumber,'Tapa Abierta',[row.Latitud, row.Longitud]])
+                                socket.emit('status',[idNumber,'No responde',[row.Latitud, row.Longitud]])
                             });
 
                             //db.close()

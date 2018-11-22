@@ -63,11 +63,6 @@ socket.on('status', function (data) { //get button status from client
 	console.log(data)
 });
 
-socket.on('keepAlive', function(data){
-  //document.write(data+"<br>")
-  console.log(data)
-});
-
-socket.on('geojson', function(data){
+socket.on('start', function(data){
   console.log(data)
 })
