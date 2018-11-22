@@ -3,7 +3,8 @@ var app = express();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 var mqtt = require('mqtt');
-var sqlite3 = require('sqlite3')
+var sqlite3 = require('sqlite3');
+var schedule = require('node-schedule');
 
 var client = mqtt.connect('mqtt://localhost', {'clientId': "Server"});
 var topics = ['+/status', '+/keepAlive']
@@ -11,8 +12,12 @@ var topics = ['+/status', '+/keepAlive']
 const sqlCount = "SELECT IDTAPAS FROM TAPAS"
 const sqlFallaBateria = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'FALLA BATERIA','2018-10-08',0)"
 const sqlTapaAbierta = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'TAPA ABIERTA','2018-10-08',0)"
+const sqlNoResponde = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'NO RESPONDE','2018-10-08',0)"
 const sqlUbicacionTapa = "SELECT LATITUD Latitud, LONGITUD Longitud FROM TAPAS WHERE IDTAPAS == ?"
 const sqlInsertKeepAlive = "UPDATE TAPAS SET ULTIMAACTIVACION = ? WHERE IDTAPAS = ?"
+const sqlGetTimeKeepAlive = "SELECT IDTAPAS, ULTIMAACTIVACION FROM TAPAS"
+//const sqlGetTimeKeepAlive = "SELECT strftime('%s', 'NOW') - strftime('%s', (SELECT ULTIMAACTIVACION FROM TAPAS))"
+//const sqlGetTimeKeepAlive = "SELECT strftime('%s', (SELECT ULTIMAACTIVACION FROM TAPAS))"
 
 
 var statusTapa = 0;
@@ -39,6 +44,31 @@ db.each(sqlCount,[],(err,row)=>{
     statusTapa = statusTapa + 1; 
     
 })
+
+var j = schedule.scheduleJob('*/1 * * * *', function(){
+    db = new sqlite3.Database('tapas.db', (err) => {
+        if (err){
+          console.log(err.message)
+        }
+        console.log('Connected to db')
+        });                
+    db.each(sqlGetTimeKeepAlive,[],(err,row)=>{
+        if (err){
+            throw err;
+        }
+        console.log(row)
+        date1 = new Date(row.ULTIMAACTIVACION)
+        if(( Date.now() - date1.getTime()) > 86400000){
+            //var idTapaKeep = 
+            console.log("Mas de un dia")
+            client.publish(row.IDTAPAS+"/status",2)
+        }else{
+            console.log("Menos de un dia")
+        }
+        
+    })
+    
+  });
 
 io.on('connection', function(socket){
     //io.emit('status',2)
@@ -102,6 +132,26 @@ io.on('connection', function(socket){
 
                             //db.close()
                             break;
+                        case '2':
+                            //2 No respondio keepAlive
+
+                            console.log(idNumber+': Revisar Dispositivo')
+                            db.run(sqlNoResponde,[idNumber], (err) =>{
+                                if (err) {
+                                    return console.log(err.message)
+                                }
+                                console.log("Incidencia agregada (No responde)")
+                            })
+                            db.each(sqlUbicacionTapa, [idNumber], (err,row) => {
+                                if (err){
+                                    console.log("Error getLatLong");
+                                    throw err;     
+                                }
+                                socket.emit('status',[idNumber,'Tapa Abierta',[row.Latitud, row.Longitud]])
+                            });
+
+                            //db.close()
+                            break;
                         default:
                             console.log(message.toString())
                             //db.close()
@@ -124,10 +174,7 @@ io.on('connection', function(socket){
                         if (err){
                             return console.error(err.message)
                         }
-                        console.log("KeepAlive agregado")
-                        
-
-                        
+                        console.log("KeepAlive agregado")                        
                         
                         
                     })
