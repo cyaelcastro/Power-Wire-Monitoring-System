@@ -1,5 +1,6 @@
 var socket = io.connect('http://localhost:4000', { 'forceNew' : 'true' });
-
+var pinArray = []
+var foundFlag = true;
 
 //var map = L.map('map')
 var map = L.map('map').setView([20.6685,-103.46276], 17);
@@ -47,22 +48,67 @@ socket.on('messages', function (data){
 })
 
 socket.on('status', function (data) { //get button status from client
-//  document.write(data+"<br>")
 
+  if (pinArray.length == 0) {
+    pinArray.push(data)
+    addPin(data)
+    
+  }else{
+    for (let i = 0; i < pinArray.length; i++) {
+      console.log("Index: "+pinArray[i][0].toString())
+      console.log(" Data: "+data[0].toString())
 
-  $( "tbody" ).append( $("<tr><td>"+data[0]+"</td><td>"+data[1]+"</td></tr>" ) )
-  console.log(data)
-  //var marker = L.marker([20.66960,-103.46280]);
-  var marker = L.marker([data[2][0],data[2][1]]);
-  marker.bindPopup("<b> Tapa: "+data[0]+ "<br>"+data[1]+"</b>").openPopup();
+      if (pinArray[i][0] == data[0]) {
+        foundFlag = true;
+      }else{
+        foundFlag = false;
+      }
+      
+    }
+    if (foundFlag == false) {
+      foundFlag = true;
+      pinArray.push(data)
+      console.log("Data agregada "+ data.toString())
+      addPin(data)
+      
+    }  
+  }
+
   
-  marker.addTo(map)
 
-	
-	//document.getElementById("right-panel").innerHTML += data+"<br>"
-	console.log(data)
+  
 });
 
-socket.on('start', function(data){
-  console.log(data)
-})
+function addPin (info){
+  $( "tbody" ).append( $(`<tr><td>`+info[0]+`</td><td>`+info[1]+`</td><td><button class='botonDerecho' id= 'boton`+info[0].toString()+`' >Limpiar</button></td></tr>`) )
+  //console.log(data)
+
+  var marker = L.marker([info[2][0],info[2][1]]);
+  marker.bindPopup("<b> Tapa: "+info[0]+ "<br>"+info[1]+"</b><br>").openPopup();
+
+  marker.addTo(map)
+
+}
+$(document).ready(function(){
+  $('button').click(function () {
+    if (this.id == 'boton1') {
+        alert('this button was clicked');
+    }
+    else if (this.id == 'boton2') {
+        alert('Button 2 was clicked');
+    }else if (this.id == 'holibutton') {
+      alert('Button Holi'+(this.id).toString());
+  }
+});
+});
+
+$('body').on('click', '.botonDerecho', function() {
+  
+  var str = this.id;
+  var n = str.replace("boton", "");
+  console.log(n)
+  socket.emit('limpiar',n)
+  $('body').click(function() {
+    location.reload();
+});
+});

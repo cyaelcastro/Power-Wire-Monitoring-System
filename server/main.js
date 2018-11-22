@@ -17,7 +17,7 @@ const sqlUbicacionTapa = "SELECT LATITUD Latitud, LONGITUD Longitud FROM TAPAS W
 const sqlInsertKeepAlive = "UPDATE TAPAS SET ULTIMAACTIVACION = ? WHERE IDTAPAS = ?"
 const sqlGetTimeKeepAlive = "SELECT IDTAPAS, ULTIMAACTIVACION FROM TAPAS"
 const sqlIncidentesOnStart = "SELECT IDTAPAS, DESCRIPCION FROM INCIDENTES WHERE ATENDIDO != 1"
-
+const sqlIncidenteAtendido = "UPDATE INCIDENTES SET ATENDIDO = 1 WHERE IDTAPAS = ?"
 
 var statusTapa = 0;
 var place = [];
@@ -100,7 +100,24 @@ io.on('connection', function(socket){
     
 
     console.log('Alguien se ha conectado')
+    socket.on('limpiar',function(data){
 
+        console.log("Se recibio "+data.toString())
+        db = new sqlite3.Database('tapas.db', (err) => {
+            if (err){
+              console.log(err.message)
+            }
+            console.log('Connected to db: Actualizando Incidente')
+            });                
+        db.each(sqlIncidenteAtendido,[data],(err,row)=>{
+            if (err){
+                throw err;
+            }
+            console.log(row)
+           
+            
+        })
+    })
 
     
     if (client.on('message', function(topic, message, packet){
@@ -212,6 +229,7 @@ io.on('connection', function(socket){
             }
         }
     }));
+
 });
 
 
