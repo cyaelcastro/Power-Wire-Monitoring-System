@@ -5,7 +5,7 @@ var io = require('socket.io')(server);
 var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3');
 var schedule = require('node-schedule');
-
+var tapasArray = []
 var client = mqtt.connect('mqtt://localhost', {'clientId': "Server"});
 var topics = ['+/status', '+/keepAlive']
 
@@ -40,11 +40,12 @@ db.each(sqlCount,[],(err,row)=>{
     if (err){
         throw err;
     }
+    tapasArray.push(row.IDTAPAS)
     statusTapa = statusTapa + 1; 
     
 })
 
-var j = schedule.scheduleJob('*/1 * * * *', function(){
+var j = schedule.scheduleJob('*/10 * * * *', function(){
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message)
@@ -75,7 +76,8 @@ var j = schedule.scheduleJob('*/1 * * * *', function(){
   });
 
 io.on('connection', function(socket){
-    
+    console.log("TAPAS ARRAY: "+tapasArray.toString())
+    var tapasPendienteArray = []
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message)
@@ -87,6 +89,7 @@ io.on('connection', function(socket){
             throw err;
         }
         console.log(row)
+        tapasPendienteArray.push(row.IDTAPAS.toString())
         db.each(sqlUbicacionTapa, [row.IDTAPAS], (err,row2) => {
             if (err){
                 console.log("Error getLatLong");
@@ -95,13 +98,14 @@ io.on('connection', function(socket){
             socket.emit('status',[row.IDTAPAS,row.DESCRIPCION,[row2.Latitud, row2.Longitud]])
         });
         
-        
+        console.log(tapasPendienteArray)
     })
     
 
     console.log('Alguien se ha conectado')
     socket.on('limpiar',function(data){
-
+        //eliminar el idnumber del lista 
+        tapasPendienteArray.splice(tapasPendienteArray.indexOf(data.toString()))
         console.log("Se recibio "+data.toString())
         db = new sqlite3.Database('tapas.db', (err) => {
             if (err){
@@ -114,7 +118,6 @@ io.on('connection', function(socket){
                 throw err;
             }
             console.log(row)
-           
             
         })
     })
@@ -124,7 +127,11 @@ io.on('connection', function(socket){
         var splitString = topic.split('/');
         var idNumber = splitString[0];
         var action = splitString[1];
-        if(idNumber <= statusTapa){
+        console.log(tapasPendienteArray.includes(idNumber.to))
+        console.log(typeof(tapasPendienteArray[3]))
+        console.log(typeof(idNumber))
+        if(idNumber <= statusTapa && !tapasPendienteArray.includes(idNumber)){
+            tapasPendienteArray.push(idNumber)
             switch (action) {
                 case 'status':
                     var db = new sqlite3.Database('tapas.db', (err) => {
