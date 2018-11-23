@@ -130,7 +130,10 @@ io.on('connection', function(socket){
         console.log(tapasPendienteArray.includes(idNumber.to))
         console.log(typeof(tapasPendienteArray[3]))
         console.log(typeof(idNumber))
-        if(idNumber <= statusTapa && !tapasPendienteArray.includes(idNumber)){
+
+        var estado = message.toString()  
+
+        if(idNumber <= statusTapa && idNumber > 0 && !tapasPendienteArray.includes(idNumber) && estado >= 0 && estado < 3 ){
             tapasPendienteArray.push(idNumber)
             switch (action) {
                 case 'status':
@@ -139,12 +142,13 @@ io.on('connection', function(socket){
                     console.log(err.message)
                     }
                     console.log('Connected to db: Se recibio mensaje')
-                    });                
-                    switch (message.toString()) {
+                    });
+                                  
+                    switch (estado) {
                         case '0':
                             //0 Falla de bateria
                             
-                            console.log (idNumber+": Falla de Bateria");
+                            console.log (idNumber+": FALLA DE BATERIA");
                             db.run(sqlFallaBateria,[idNumber], (err) =>{
                                 if (err) {
                                     return console.log(err.message)
@@ -156,7 +160,7 @@ io.on('connection', function(socket){
                                     console.log("Error getLatLong");
                                     throw err;     
                                 }
-                                socket.emit('status',[idNumber,'Falla de Bateria',[row.Latitud, row.Longitud]])
+                                socket.emit('status',[idNumber,'FALLA DE BATERIA',[row.Latitud, row.Longitud]])
                             });
                             
                             //socket.emit('status',[idNumber,'Falla de Bateria'])
@@ -178,7 +182,7 @@ io.on('connection', function(socket){
                                     console.log("Error getLatLong");
                                     throw err;     
                                 }
-                                socket.emit('status',[idNumber,'Tapa Abierta',[row.Latitud, row.Longitud]])
+                                socket.emit('status',[idNumber,'TAPA ABIERTA',[row.Latitud, row.Longitud]])
                             });
 
                             //db.close()
@@ -198,7 +202,7 @@ io.on('connection', function(socket){
                                     console.log("Error getLatLong");
                                     throw err;     
                                 }
-                                socket.emit('status',[idNumber,'No responde',[row.Latitud, row.Longitud]])
+                                socket.emit('status',[idNumber,'NO RESPONDE',[row.Latitud, row.Longitud]])
                             });
 
                             //db.close()
