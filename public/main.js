@@ -3,12 +3,17 @@ var pinArray = []
 var foundFlag = true;
 
 //var map = L.map('map')
-var map = L.map('map').setView([20.6685,-103.46276], 17);
+var map = L.map('map',{
+  minZoom: 16,
+  maxBounds: [[20.67300,-103.46694],[20.66483,-103.46028]]
+}).setView([20.6685,-103.46276], 16);
 
  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 	maxZoom: 19,
 	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map)
+
+
 
 
 
