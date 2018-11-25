@@ -89,26 +89,12 @@ function addPin (info){
   marker.addTo(map)
 
 }
-$(document).ready(function(){
-  $('button').click(function () {
-    if (this.id == 'boton1') {
-        alert('this button was clicked');
-    }
-    else if (this.id == 'boton2') {
-        alert('Button 2 was clicked');
-    }else if (this.id == 'holibutton') {
-      alert('Button Holi'+(this.id).toString());
-  }
-});
-});
 
 $('body').on('click', '.botonDerecho', function() {
   
   var str = this.id;
   var n = str.replace("boton", "");
-  console.log(n)
   socket.emit('limpiar',n)
-  $('body').click(function() {
-    location.reload();
-});
+  location.reload();
+
 });
