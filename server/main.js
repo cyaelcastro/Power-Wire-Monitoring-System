@@ -62,15 +62,9 @@ var j = schedule.scheduleJob('* 0 * * *', function(){
         if(( Date.now() - date1.getTime()) > 86400000){
             //var idTapaKeep = 
             console.log("Mas de un dia")
-            //checar enviar mqtt - conversion de tipo para topic
-            //var topicKeepAlive = (row.IDTAPAS).toString()+"/status"
-            //client.publish(topicKeepAlive.toString(),2)
-            //console.log(typeof(topicKeepAlive))
-            //console.log(typeof((row.IDTAPAS).toString()))
-            //console.log("Enviar MQTT "+row.IDTAPAS.toString())
             var topicSchedule = (row.IDTAPAS.toString()+"/status").toString()
             console.log(topicSchedule)
-            client.publish(topicSchedule,"2")
+            setTimeout(client.publish(topicSchedule,"2"),500)
         }else{
             console.log("Menos de un dia")
         }

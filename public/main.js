@@ -13,40 +13,6 @@ var map = L.map('map',{
 	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map)
 
-
-
-
-
-/*let myIcon =  L.ExtraMarkers.icon({
-  icon: 'fa-leaf',
-  markerColor: 'red',
-  shape: 'square',
-  prefix: 'fa'
-})*/
-/*
-var myIcon = L.icon({
-  iconUrl: 'pijiji.png',
-  iconSize: [95, 95],
-  iconAnchor: [22, 94],
-});
-*/
-
-//funcion para recibir geojson
-
-//let geojson_url = "https://raw.githubusercontent.com/delineas/leaflet-flyto-webpack-bulma/master/src/data/arboles_singulares_en_espacios_naturales.geojson"
-//var geojson_url = require("./map.geojson");
-
-/*fetch(  geojson_url ).then(
-	
-	res => res.json()
-	
-).then(
-	data => {
-	let geojsonlayer = L.geoJson(data).addTo(map)
-	map.fitBounds(geojsonlayer.getBounds())
-	}
-)*/
-//var socket = io(); //load socket.io-client and connect to the host that serves the page
 socket.on('messages', function (data){
     console.log("Conectado "+data)
     
