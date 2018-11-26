@@ -6,7 +6,7 @@ var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3');
 var schedule = require('node-schedule');
 var tapasArray = []
-var client = mqtt.connect('mqtt://192.168.1.74', {clientId: "Server",
+var client = mqtt.connect('mqtt://localhost', {clientId: "Server",
                                                 clean: true});
 var topics = ['+/status', '+/keepAlive']
 
@@ -46,7 +46,7 @@ db.each(sqlCount,[],(err,row)=>{
     
 })
 
-var j = schedule.scheduleJob('*/1 * * * *', function(){
+var j = schedule.scheduleJob('* 0 * * *', function(){
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message.toString())
@@ -80,19 +80,19 @@ var j = schedule.scheduleJob('*/1 * * * *', function(){
   });
 
 io.on('connection', function(socket){
-    console.log("TAPAS ARRAY: "+tapasArray.toString())
+    console.log("Tapas existentes: "+tapasArray.toString())
     var tapasPendienteArray = []
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message)
         }
-        console.log('Connected to db: Enviando revisiones pendientes')
+        //console.log('Connected to db: Enviando revisiones pendientes')
         });                
     db.each(sqlIncidentesOnStart,[],(err,row)=>{
         if (err){
             throw err;
         }
-        console.log(row)
+        console.log("Incidente en la tapa: "+row.IDTAPAS)
         tapasPendienteArray.push(row.IDTAPAS.toString())
         db.each(sqlUbicacionTapa, [row.IDTAPAS], (err,row2) => {
             if (err){
@@ -104,7 +104,7 @@ io.on('connection', function(socket){
         
         console.log(tapasPendienteArray)
     })
-    
+
 
     console.log('Alguien se ha conectado')
     socket.on('limpiar',function(data){
@@ -131,9 +131,8 @@ io.on('connection', function(socket){
         var splitString = topic.split('/');
         var idNumber = splitString[0];
         var action = splitString[1];
-        console.log(tapasPendienteArray.includes(idNumber.to))
-        console.log(typeof(tapasPendienteArray[3]))
-        console.log(typeof(idNumber))
+        console.log("ID esta en pendientes?: "+tapasPendienteArray.includes(idNumber).toString())
+          
 
         var estado = message.toString()  
 
