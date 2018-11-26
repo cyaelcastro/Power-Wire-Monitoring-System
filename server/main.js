@@ -21,7 +21,6 @@ const sqlIncidentesOnStart = "SELECT IDTAPAS, DESCRIPCION FROM INCIDENTES WHERE 
 const sqlIncidenteAtendido = "UPDATE INCIDENTES SET ATENDIDO = 1 WHERE IDTAPAS = ?"
 
 var statusTapa = 0;
-var place = [];
  
 app.use(express.static('public'))
 
@@ -63,7 +62,7 @@ var j = schedule.scheduleJob('* 0 * * *', function(){
             //var idTapaKeep = 
             console.log("Mas de un dia")
             var topicSchedule = (row.IDTAPAS.toString()+"/status").toString()
-            console.log(topicSchedule)
+            //console.log(topicSchedule)
             setTimeout(client.publish(topicSchedule,"2"),500)
         }else{
             console.log("Menos de un dia")
@@ -74,7 +73,7 @@ var j = schedule.scheduleJob('* 0 * * *', function(){
   });
 
 io.on('connection', function(socket){
-    console.log("Tapas existentes: "+tapasArray.toString())
+    //console.log("Tapas existentes: "+tapasArray.toString())
     var tapasPendienteArray = []
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
@@ -86,7 +85,7 @@ io.on('connection', function(socket){
         if (err){
             throw err;
         }
-        console.log("Incidente en la tapa: "+row.IDTAPAS)
+        //console.log("Incidente en la tapa: "+row.IDTAPAS)
         tapasPendienteArray.push(row.IDTAPAS.toString())
         db.each(sqlUbicacionTapa, [row.IDTAPAS], (err,row2) => {
             if (err){
@@ -96,7 +95,7 @@ io.on('connection', function(socket){
             socket.emit('status',[row.IDTAPAS,row.DESCRIPCION,[row2.Latitud, row2.Longitud]])
         });
         
-        console.log(tapasPendienteArray)
+        //console.log(tapasPendienteArray)
     })
 
 
@@ -115,7 +114,7 @@ io.on('connection', function(socket){
             if (err){
                 throw err;
             }
-            console.log(row)
+            //console.log(row)
             
         })
     })
