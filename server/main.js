@@ -6,7 +6,8 @@ var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3');
 var schedule = require('node-schedule');
 var tapasArray = []
-var client = mqtt.connect('mqtt://localhost', {'clientId': "Server"});
+var client = mqtt.connect('mqtt://192.168.1.74', {clientId: "Server",
+                                                clean: true});
 var topics = ['+/status', '+/keepAlive']
 
 const sqlCount = "SELECT IDTAPAS FROM TAPAS"
@@ -45,10 +46,10 @@ db.each(sqlCount,[],(err,row)=>{
     
 })
 
-var j = schedule.scheduleJob('*/10 * * * *', function(){
+var j = schedule.scheduleJob('*/1 * * * *', function(){
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
-          console.log(err.message)
+          console.log(err.message.toString())
         }
         console.log('Connected to db: Buscando dispositivos inactivos')
         });                
@@ -66,7 +67,10 @@ var j = schedule.scheduleJob('*/10 * * * *', function(){
             //client.publish(topicKeepAlive.toString(),2)
             //console.log(typeof(topicKeepAlive))
             //console.log(typeof((row.IDTAPAS).toString()))
-            console.log("Enviar MQTT "+row.IDTAPAS.toString())
+            //console.log("Enviar MQTT "+row.IDTAPAS.toString())
+            var topicSchedule = (row.IDTAPAS.toString()+"/status").toString()
+            console.log(topicSchedule)
+            client.publish(topicSchedule,"2")
         }else{
             console.log("Menos de un dia")
         }
