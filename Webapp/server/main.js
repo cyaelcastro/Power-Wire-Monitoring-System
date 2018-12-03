@@ -40,7 +40,7 @@ client.subscribe(topics);
 
 
 //Counting items in the db
-db = new sqlite3.Database('tapas.db', (err) => {
+db = new sqlite3.Database('./tapas.db', (err) => {
     if (err){
       console.log(err.message)
     }
