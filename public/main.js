@@ -2,10 +2,14 @@ var socket = io.connect('http://localhost:4000', { 'forceNew' : 'true' });
 var pinArray = []
 var idArray = []
 var markerArray = []
+var marker
+var foundFlag = true;
 
-//var map = L.map('map')
+//Map initialization
 var map = L.map('map',{
+  //Zoom
   minZoom: 16,
+  //Where the map allows to regard
   maxBounds: [[20.67300,-103.46694],[20.66483,-103.46028]]
 }).setView([20.6685,-103.46276], 16);
 
@@ -14,62 +18,70 @@ var map = L.map('map',{
 	attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 }).addTo(map)
 
-socket.on('messages', function (data){
-    console.log("Conectado "+data)
-    
-})
+//Get info (IDItem, Problem and Coordenates) from backend
+socket.on('status', function (data) { 
 
-socket.on('status', function (data) { //get button status from client
-  
   if (!idArray.includes(data[0])) {
-    
+    console.log(data)
     idArray.push(data[0])
+    console.log("ID ARRAY "+idArray+ " y tipo "+ typeof(data[0]))
     pinArray.push(data)
+    console.log("PIN ARRAY "+pinArray)
     addPin(data)
-    addDataRightBar(data)
   }
   
 });
 
 function addPin (info){
-  
-  var marker = L.marker([info[2][0],info[2][1]]);
-  markerArray.push(marker)
+  //Creates a marker array and adds the new item
+  marker = L.marker([info[2][0],info[2][1]]);
   marker.bindPopup("<b> Tapa: "+info[0]+ "<br>"+info[1]+"</b><br>").openPopup();
-
   marker.addTo(map)
+  markerArray.push(marker)
+  addElementRightBar(info)
 
 }
-function addDataRightBar(info){
-  $( "tbody" ).append( $(`<tr><td>`+info[0]+`</td><td>`+info[1]+`</td><td><button class='botonDerecho' id= 'boton`+info[0].toString()+`' >X</button></td></tr>`) )
-  //$( "tbody" ).append( $(`<tr><td>`+info[0]+`</td><td>`+info[1]+`</td><td><a class="waves-effect waves-light btn botonDerecho id= 'boton'>X</a></td></tr>`) )
-  
-}
 
+
+//When a button in the class botonDerecho is clicked runs this
 $('body').on('click', '.botonDerecho', function() {
   
   var str = this.id;
   var n = str.replace("boton", "");
-  var index = idArray.indexOf(parseInt(n))
-  markerArray[index].remove();
-  alert("Se ha eliminado el pin "+n);
-  updateArray(pinArray,index)
-  updateArray(idArray, index)
-  updateArray(markerArray,index)
-  socket.emit('limpiar',n);
-  updateRightBar(pinArray)
+  console.log("ID Array: "+ idArray)
+  var index = idArray.indexOf(n)
+  console.log("Index: "+index.toString())
+  socket.emit('limpiar',n)
+  console.log(n)
+  //marker.remove()
+//  markerArray[index].remove()
   //location.reload();
+  updateInfo(pinArray, idArray, markerArray, index)
+  
 
 });
 
+//Update the arrays index
+function updateInfo(pinArray, idArray, markerArray, index){
+  pinArray.splice(index,1)
+  idArray.splice(index,1)
+  markerArray[index].remove()
+  markerArray.splice(index,1)
+  updateRightBar(pinArray)
+
+}
+//Create a new right bar with update info
 function updateRightBar(pinArray){
   $("tbody").empty();
+  
+  //console.log( $("tbody").toArray().innerText)
+  console.log(pinArray)
   pinArray.forEach(element => {
-    addDataRightBar(element)
+    //addDataRightBar(element)
+    addElementRightBar(element)
   });
 }
-
-function updateArray(array, index){
-  array.splice(index,1)
+//Adds element in the right bar
+function addElementRightBar(info){
+  $( "tbody" ).append( $(`<tr><td>`+info[0]+`</td><td>`+info[1]+`</td><td><button class='botonDerecho' id= 'boton`+info[0].toString()+`' >X</button></td></tr>`) )
 }
-

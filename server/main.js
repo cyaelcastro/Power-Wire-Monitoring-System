@@ -5,11 +5,17 @@ var io = require('socket.io')(server);
 var mqtt = require('mqtt');
 var sqlite3 = require('sqlite3');
 var schedule = require('node-schedule');
+
+//Array to save the items
 var tapasArray = []
+
+//Initialization of mqtt client
 var client = mqtt.connect('mqtt://localhost', {clientId: "Server",
                                                 clean: true});
+// MQTT Topics
 var topics = ['+/status', '+/keepAlive']
 
+// SQL Queries
 const sqlCount = "SELECT IDTAPAS FROM TAPAS"
 const sqlFallaBateria = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'FALLA BATERIA','2018-10-08',0)"
 const sqlTapaAbierta = "INSERT INTO INCIDENTES(IDTAPAS,DESCRIPCION,FECHAINCIDENTE, ATENDIDO) VALUES((?),'TAPA ABIERTA','2018-10-08',0)"
@@ -20,16 +26,20 @@ const sqlGetTimeKeepAlive = "SELECT IDTAPAS, ULTIMAACTIVACION FROM TAPAS"
 const sqlIncidentesOnStart = "SELECT IDTAPAS, DESCRIPCION FROM INCIDENTES WHERE ATENDIDO != 1"
 const sqlIncidenteAtendido = "UPDATE INCIDENTES SET ATENDIDO = 1 WHERE IDTAPAS = ?"
 
-var statusTapa = 0;
+
+var counterTapa = 0;
  
 app.use(express.static('public'))
 
 app.get('/', function (req, res){
-    res.status(200).send("Hello World")
+    //res.status(200).send("Hello World")
 })
 
+//subscribing to MQTT Topics
 client.subscribe(topics);
 
+
+//Counting items in the db
 db = new sqlite3.Database('tapas.db', (err) => {
     if (err){
       console.log(err.message)
@@ -40,41 +50,55 @@ db.each(sqlCount,[],(err,row)=>{
     if (err){
         throw err;
     }
+    //Adding items to array
     tapasArray.push(row.IDTAPAS)
-    statusTapa = statusTapa + 1; 
+    //Counting items
+    counterTapa = counterTapa + 1; 
     
 })
 
-var j = schedule.scheduleJob('* 0 * * *', function(){
+//Initialization of programed task
+var j = schedule.scheduleJob('48 * * * *', function(){
+    //
+    console.log("Iniciando busqueda de tapas inactivas")
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message.toString())
         }
         console.log('Connected to db: Buscando dispositivos inactivos')
-        });                
+        }); 
+    // Getting KeepAlive Field               
     db.each(sqlGetTimeKeepAlive,[],(err,row)=>{
         if (err){
             throw err;
         }
         //console.log(row)
         date1 = new Date(row.ULTIMAACTIVACION)
-        if(( Date.now() - date1.getTime()) > 86400000){
-            //var idTapaKeep = 
-            console.log("Mas de un dia")
+        //Evaluating inactive time
+        fecha = new Date(Date.now())
+        if(( fecha - date1.getTime()) > 86400000){
+            
             var topicSchedule = (row.IDTAPAS.toString()+"/status").toString()
-            //console.log(topicSchedule)
-            setTimeout(client.publish(topicSchedule,"2"),500)
+            console.log("Item: "+row.IDTAPAS.toString()+" is inactive...")
+            setTimeout(() =>{
+                client.publish(topicSchedule,"2")
+            },500)
+            
+        
         }else{
-            console.log("Menos de un dia")
+            //console.log("Menos de un dia")
         }
         
     })
     
   });
 
+//Initilization Socket.io 
 io.on('connection', function(socket){
-    //console.log("Tapas existentes: "+tapasArray.toString())
+    
+    //Pending items array
     var tapasPendienteArray = []
+
     db = new sqlite3.Database('tapas.db', (err) => {
         if (err){
           console.log(err.message)
@@ -85,25 +109,29 @@ io.on('connection', function(socket){
         if (err){
             throw err;
         }
-        //console.log("Incidente en la tapa: "+row.IDTAPAS)
+        
         tapasPendienteArray.push(row.IDTAPAS.toString())
         db.each(sqlUbicacionTapa, [row.IDTAPAS], (err,row2) => {
             if (err){
                 console.log("Error getLatLong");
                 throw err;     
             }
-            socket.emit('status',[row.IDTAPAS,row.DESCRIPCION,[row2.Latitud, row2.Longitud]])
+            socket.emit('status',[row.IDTAPAS.toString(),row.DESCRIPCION,[row2.Latitud, row2.Longitud]])
         });
         
-        //console.log(tapasPendienteArray)
     })
 
-
     console.log('Alguien se ha conectado')
+    
+    //Function cleaning items in the db when the client
     socket.on('limpiar',function(data){
-        //eliminar el idnumber del lista 
+        
+        //Removing item from pending array
         tapasPendienteArray.splice(tapasPendienteArray.indexOf(data.toString()))
-        console.log("Se recibio "+data.toString())
+
+        //console.log("Se recibio "+data.toString())
+        
+
         db = new sqlite3.Database('tapas.db', (err) => {
             if (err){
               console.log(err.message)
@@ -119,32 +147,40 @@ io.on('connection', function(socket){
         })
     })
 
-    
+    //Function when MQTT Broker receives a message with the especific topic
     if (client.on('message', function(topic, message, packet){
+        
+        //Getting the ID from topic and the actions
+        
         var splitString = topic.split('/');
         var idNumber = splitString[0];
         var action = splitString[1];
-        console.log("ID esta en pendientes?: "+tapasPendienteArray.includes(idNumber).toString())
-          
-
         var estado = message.toString()  
 
-        if(idNumber <= statusTapa && idNumber > 0 && !tapasPendienteArray.includes(idNumber) && estado >= 0 && estado < 3 ){
+        if (!tapasPendienteArray.includes(idNumber)) {
+            console.log("Se agregó incidencia en la tapa: "+idNumber.toString())
+        }
+        
+        if(idNumber <= counterTapa && idNumber > 0 && !tapasPendienteArray.includes(idNumber) && estado >= 0 && estado < 3 ){
+            
+            //Add the ID to the pending array
             tapasPendienteArray.push(idNumber)
-            switch (action) {
-                case 'status':
+
+            //When topic received is status
+            if (action == "status") {
+                
                     var db = new sqlite3.Database('tapas.db', (err) => {
                     if (err){
                     console.log(err.message)
                     }
-                    console.log('Connected to db: Se recibio mensaje')
+                    
                     });
-                                  
+                    //Evaluating the received message              
                     switch (estado) {
                         case '0':
-                            //0 Falla de bateria
                             
-                            console.log (idNumber+": FALLA DE BATERIA");
+                            //Battery Error
+                            console.log (idNumber+": Falla de Bateria");
                             db.run(sqlFallaBateria,[idNumber], (err) =>{
                                 if (err) {
                                     return console.log(err.message)
@@ -159,13 +195,10 @@ io.on('connection', function(socket){
                                 socket.emit('status',[idNumber,'FALLA DE BATERIA',[row.Latitud, row.Longitud]])
                             });
                             
-                            //socket.emit('status',[idNumber,'Falla de Bateria'])
-                            //socket.emit('status',[idNumber,'Falla de Bateria',place])
-                            //db.close()
                             break;
                         case '1':
-                            //1 Tapa abierta
-
+                            
+                            //Manhole open
                             console.log(idNumber+': Tapa Abierta')
                             db.run(sqlTapaAbierta,[idNumber], (err) =>{
                                 if (err) {
@@ -181,10 +214,10 @@ io.on('connection', function(socket){
                                 socket.emit('status',[idNumber,'TAPA ABIERTA',[row.Latitud, row.Longitud]])
                             });
 
-                            //db.close()
                             break;
                         case '2':
-                            //2 No respondio keepAlive
+                            
+                            //Device not responding (Keep alive)
 
                             console.log(idNumber+': Revisar Dispositivo')
                             db.run(sqlNoResponde,[idNumber], (err) =>{
@@ -200,40 +233,38 @@ io.on('connection', function(socket){
                                 }
                                 socket.emit('status',[idNumber,'NO RESPONDE',[row.Latitud, row.Longitud]])
                             });
-
-                            //db.close()
                             break;
+
                         default:
-                            console.log(message.toString())
-                            //db.close()
                             break;
 
                     }
-                    break;
                     db.close()
-            
-                case 'keepAlive':
-                    var db = new sqlite3.Database('tapas.db', (err) => {
-                        if (err){
-                        console.log(err.message)
-                        }
-                        console.log('Connected to db')
-                    }); 
-                    var fechaActual = new Date(Date.now())
-                    var fechaString = fechaActual.getFullYear().toString()+"-"+fechaActual.getMonth().toString()+"-"+fechaActual.getDate().toString()+" "+fechaActual.getHours().toString()+":"+fechaActual.getMinutes().toString()
-                    db.run(sqlInsertKeepAlive,[fechaString,idNumber], function(err){
-                        if (err){
-                            return console.error(err.message)
-                        }
-                        console.log("KeepAlive agregado")                        
-                        
-                        
-                    })
+                
+                
+            }//Switch action
+        }//if multicondition
 
-                    break;
-                default:
-                    break;
-            }
+        if (action == "keepAlive") {
+            //When keepAlive is received the date is added to db
+            
+            var db = new sqlite3.Database('tapas.db', (err) => {
+                if (err){
+                console.log(err.message)
+                }
+                console.log('Connected to db')
+            }); 
+            var fechaActual = new Date(Date.now())
+            var fechaString = fechaActual.getFullYear().toString()+"-"+(fechaActual.getMonth()+1).toString()+"-"+fechaActual.getDate().toString()+" "+fechaActual.getHours().toString()+":"+fechaActual.getMinutes().toString()
+            db.run(sqlInsertKeepAlive,[fechaString,idNumber], function(err){
+                if (err){
+                    return console.error(err.message)
+                }
+                console.log("KeepAlive agregado: "+idNumber.toString())
+                
+                
+            })
+    
         }
     }));
 
