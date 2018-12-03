@@ -1,7 +1,7 @@
 /*
  * 
   Programa creado por Saul Luna Minor.
-  Ultima modificación: 30/11/2018
+  Ultima modificación: 30/12/2018
 
   El programa es para el trabajo en conjunto 
   con la red de laboratorios de Intel, donde 
