@@ -1,4 +1,4 @@
-# Power Wire Monitoring System
+# Power Wire Monitoring System :zap:
 
 The system is conformed by:
 - Monitoring dashboard developed with Express.js. Using Websockets and MQTT for the communication (@CYaelCastro)
