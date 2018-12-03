@@ -84,7 +84,7 @@ void setup_wifi() {
 
 /*
  * Interrupción cuando llega un mensaje
- * Se el servidor envia un mensaje, esta función 
+ * Si el servidor envia un mensaje, esta función 
  * recibe el mensaje y la guarda en "payload[]".
  */
 void callback(char* topic, byte* payload, unsigned int length) {
