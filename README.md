@@ -9,7 +9,9 @@ The system is conformed by:
 
 First you need to use `npm install` to install the dependencies
 
-Later, `node server/main.js` in order to start the server. It'll be running in:
+After that move to the `Webapp` folder
+
+Later, execute `node server/main.js` in order to start the server. It'll be running in:
  > localhost:4000
 
 
