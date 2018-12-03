@@ -1,7 +1,7 @@
 # Power Wire Monitoring System :zap:
 
 The system is conformed by:
-- Monitoring dashboard developed with Express.js. Using Websockets and MQTT for the communication ( @CYaelCastro )
+- Monitoring dashboard developed with Express.js. Using Websockets and MQTT for the communication ( @cyaelcastro )
 - Microcontroller sensing the power manhole
 - NODEMCU sending information to the MQTT Broker 
 
