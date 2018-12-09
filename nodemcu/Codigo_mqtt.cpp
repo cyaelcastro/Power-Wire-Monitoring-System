@@ -39,7 +39,7 @@ SoftwareSerial swSer(13, 15, false, 256);
 #define BUILTIN_LED 4 
 const char* ssid = "BUAP_Estudiantes"; //Nombre de la red WIFI
 const char* password = "f85ac21de4";//Contraseña
-const char* mqtt_server = "172.31.84.232";//IP del servidor(Raspberry Pi)
+const char* mqtt_server = "m14.cloudmqtt.com";//IP del servidor(Raspberry Pi)
 
 WiFiClient espClient;
 PubSubClient client(espClient);
