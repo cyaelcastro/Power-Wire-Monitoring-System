@@ -1,7 +1,7 @@
 /*
  * 
   Programa creado por Saul Luna Minor.
-  Ultima modificación: 30/12/2018
+  Ultima modificación: 9/12/2018
 
   El programa es para el trabajo en conjunto 
   con la red de laboratorios de Intel, donde 
@@ -137,15 +137,15 @@ void loop() {
    //Si llego algun dato se guarda en la varible "value"
     value = swSer.read();
    //Se convierte a una cadena el mensaje y se envia por mqtt.
-   if (value == 0x02)
+   if (value == '2')
    {
     Valor = 0x00; //¡Bateria baja!
    }
-   else if (value == 0x03)
+   else if (value == '3')
    {
     Valor = 0x01; //¡Tapa abierta!
    }
-   else if (value == 0x01)
+   else if (value == '1')
    {
     Valor = 0x00; //KeepAlive, la tapa sigue cerrada.
     snprintf (msg, 3, "%ld", Valor);
