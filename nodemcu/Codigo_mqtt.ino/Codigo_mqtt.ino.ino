@@ -7,21 +7,17 @@
   of the Intel Laboratory Network, where has involved
   the Queretaro Anahuac University and Benemerita
   Universidad Autonoma de Puebla.
-
   This software sends data from the manhole sensoring 
   system to the MQTT Broker.
-
   The sensoring system send by serial (13 and 15 pins of 
   NodeMCU), the next data:
   
   1 -> Manhole cover still closed.
   2 -> Running out of battery.
   3 -> Manhole cover is open.
-
   
   After that, it'll be converted to String and 
   will be sent to the MQTT Broker.
-
 */
 
 #include <ESP8266WiFi.h>
@@ -36,10 +32,18 @@ SoftwareSerial swSer(13, 15, false, 256);
 
 #define BUILTIN_LED 4 
 //WIFI configurations
-const char* ssid = "BUAP_Estudiantes";
-const char* password = "f85ac21de4";
+//WIFI name
+const char* ssid = ""; 
+//WIFI password
+const char* password = "";
 //MQTT Broker configuration
-const char* mqtt_server = "m14.cloudmqtt.com";
+//MQTT Broker ip
+const char* mqtt_server = "";
+//MQTT user and password
+const char* mqtt_username = "";
+const char* mqtt_password = "";
+//MQTT Port
+const int mqtt_port = 1883;
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -60,7 +64,7 @@ void setup() {
   //Connect WIFI
   setup_wifi(); 
   //Connect to MQTT Broker
-  client.setServer(mqtt_server, 1883);
+  client.setServer(mqtt_server, mqtt_port);
   //Set the callback when a message is received 
   client.setCallback(callback);
 }
@@ -111,13 +115,13 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 }
 
-
 void reconnect() {
 
   //When NodeMCU is disconnected tries to reconnect
   while (!client.connected()) {
     Serial.print("Intentado la conexion con MQTT...");
     // Attempt to connect
+    //if (client.connect("ESP8266Client", mqtt_username, mqtt_password)) {
     if (client.connect("ESP8266Client")) {
       Serial.println("Conexion exitosa!!!");
     } else {
@@ -135,34 +139,29 @@ void loop() {
     reconnect();
   }
   client.loop(); 
-   //Check if a byte has been received in the serial port
-   if (swSer.available() > 0) {
-   //If a byte has arrived is saved in value variable
+   
+  //Check if a byte has been received in the serial port
+  if (swSer.available() > 0) {
+    //If a byte has arrived is saved in value variable
     value = swSer.read();
-   //Is converted to String the message and is send with MQTT.
-   if (value == '2')
-   {
-    Valor = 0x00; //Running out of battery
-   }
-   else if (value == '3')
-   {
-    Valor = 0x01; //Cover open
-   }
-   else if (value == '1')
-   {
-    Valor = 0x00; //KeepAlive, cover still closed
-    snprintf (msg, 3, "%ld", Valor);
-    Serial.print("Mensaje publicado: ");
-    Serial.println(msg);
-    client.publish("1/keepAlive", msg);//Send message to the topic al topic "#/keepAlive".
-   }
-    snprintf (msg, 3, "%ld", Valor);
-    Serial.print("Mensaje publicado: ");
-    Serial.println(msg);
-    client.publish("1/status", msg);//Send message to the topic "#/status".
-    delay(500);
-      }
-      
+    Serial.println(value);
+    //Is converted to String the message and is send with MQTT.
+   
+    if (value == 51){
+      //Manhole cover open
+      client.publish("1/status", "1"); //Send message to the topic "#/status".
     }
-  
-
+    else if (value == 50)
+    {
+      //Running out of battery
+      client.publish("1/status", "0"); //Send message to the topic "#/status".
+   }
+   else if (value == 49)
+   {
+      //KeepAlive
+      client.publish("1/keepAlive", "1");//Send message to the topic al topic "#/keepAlive".
+   }
+     
+  }
+  delay(500);
+}
