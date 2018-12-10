@@ -1,7 +1,7 @@
 /*
   Software created by Yael Castro github.com/cyaelcastro
-  This software is a nodejs server using express, receives messages
-  from manhole sensoring system and sends them to the fronted using websockets
+  This software is the js funcionality from the Sensoring Dashboad, receives messages of the backend 
+  using websockets and show the incidents using OpenStreetMap map using Leaflet
  */
 
 

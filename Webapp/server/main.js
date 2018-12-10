@@ -1,3 +1,9 @@
+/*
+  Software created by Yael Castro github.com/cyaelcastro
+  This software is a nodejs server using express, receives messages
+  from manhole sensoring system and sends them to the fronted using websockets
+ */
+
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
