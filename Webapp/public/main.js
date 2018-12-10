@@ -1,3 +1,10 @@
+/*
+  Software created by Yael Castro github.com/cyaelcastro
+  This software is a nodejs server using express, receives messages
+  from manhole sensoring system and sends them to the fronted using websockets
+ */
+
+
 var socket = io.connect('http://localhost:4000', { 'forceNew' : 'true' });
 var pinArray = []
 var idArray = []
@@ -53,9 +60,6 @@ $('body').on('click', '.botonDerecho', function() {
   console.log("Index: "+index.toString())
   socket.emit('limpiar',n)
   console.log(n)
-  //marker.remove()
-//  markerArray[index].remove()
-  //location.reload();
   updateInfo(pinArray, idArray, markerArray, index)
   
 
@@ -73,11 +77,9 @@ function updateInfo(pinArray, idArray, markerArray, index){
 //Create a new right bar with update info
 function updateRightBar(pinArray){
   $("tbody").empty();
-  
-  //console.log( $("tbody").toArray().innerText)
+
   console.log(pinArray)
   pinArray.forEach(element => {
-    //addDataRightBar(element)
     addElementRightBar(element)
   });
 }
