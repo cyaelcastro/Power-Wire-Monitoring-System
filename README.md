@@ -28,7 +28,7 @@ Developed by: Sensoring system @DianaVazquezSantiago y Paola Vazquez. Communicat
 - Arduino IDE with support for NodeMCU with [Pubsubclient] (https://github.com/knolleary/pubsubclient) library imported.
 - ATMELStudio IDE
 
-##Instaling
+## Instaling
 
 - Monitoring Dashboard
 
@@ -42,7 +42,7 @@ Later, execute `node server/main.js` in order to start the server. It'll be runn
 - Sensing System
 Load the Codigo_mqtt.cpp file with Arduino IDE into the NodeMCU, don't forget to update the info with your network configuration (SSID and Password).
 
-##Built with
+## Built with
 
 - Node.js
 - Materialize
