@@ -1,45 +1,45 @@
 /*
  * 
-  Programa creado por Saul Luna Minor.
-  Ultima modificación: 9/12/2018
+  Program developed by Saul Luna Minor.
+  Last modification: 12/9/2018
+  
+  This software is part of the joint work inside
+  of the Intel Laboratory Network, where has involved
+  the Queretaro Anahuac University and Benemerita
+  Universidad Autonoma de Puebla.
 
-  El programa es para el trabajo en conjunto 
-  con la red de laboratorios de Intel, donde 
-  se trabajo en conjunto con la Universidad de
-  Queretaro, Zacatecas y Puebla.
+  This software sends data from the manhole sensoring 
+  system to the MQTT Broker.
 
-  Este programa es para el envio de datos del sistema
-  detector de tapas hacia un servdor, que en este caso 
-  esta alojado en una Raspberry Pi. 
+  The sensoring system send by serial (13 and 15 pins of 
+  NodeMCU), the next data:
+  
+  1 -> Manhole cover still closed.
+  2 -> Running out of battery.
+  3 -> Manhole cover is open.
 
-  El sistema detector de tapas enviara por serial(pines 
-  13 y 15 del NodeMCU), la siguiente información: 
-
-  1 -> La tapa sigue cerrada.
-  2 -> Nivel de batería baja.
-  3 -> Se ha abierto la tapa.
-
-  Después esta se convertirá en una cadena y se enviara 
-  hacia el servidor para después mostrar esta información
-  en un pagina web.
+  
+  After that, it'll be converted to String and 
+  will be sent to the MQTT Broker.
 
 */
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <SoftwareSerial.h>
-/*Comunicación serial, aqui va a ir conectado al arduino 
-O el prototipo que se quiera enviar los datos mediante serial.
+/* 
+Serial communication, here is connected to the microcontroller
 GPIO15 -> TX
 GPIO13 -> RX
 */
 SoftwareSerial swSer(13, 15, false, 256);
 
-
 #define BUILTIN_LED 4 
-const char* ssid = "BUAP_Estudiantes"; //Nombre de la red WIFI
-const char* password = "f85ac21de4";//Contraseña
-const char* mqtt_server = "m14.cloudmqtt.com";//IP del servidor(Raspberry Pi)
+//WIFI configurations
+const char* ssid = "BUAP_Estudiantes";
+const char* password = "f85ac21de4";
+//MQTT Broker configuration
+const char* mqtt_server = "m14.cloudmqtt.com";
 
 WiFiClient espClient;
 PubSubClient client(espClient);
@@ -47,17 +47,21 @@ long lastMsg = 0;
 char msg[10];
 int value = 0;
 int Valor = 0; 
-/*
- * Inicailización del WIFI del NodeMCU.
- * Asi como la conexión del NodeMCU al 
- * servidor por medio de MQTT.
- */
+
+// NodeMCU WIFI and MQTT Broker Initialization 
+ 
 void setup() {
+  
   pinMode(BUILTIN_LED, OUTPUT);// Inicializa led como salida
-  Serial.begin(115200);//Velocidad del serial del Monitor serie
-   swSer.begin(9600);//Velocidad del serial que va conectado al prototipo
-   setup_wifi(); //Configura WIFI
+  //Serial monitor speed
+  Serial.begin(115200);
+  // Prototype serial speed configuration
+  swSer.begin(9600);
+  //Connect WIFI
+  setup_wifi(); 
+  //Connect to MQTT Broker
   client.setServer(mqtt_server, 1883);
+  //Set the callback when a message is received 
   client.setCallback(callback);
 }
 
@@ -83,9 +87,8 @@ void setup_wifi() {
 }
 
 /*
- * Interrupción cuando llega un mensaje
- * Si el servidor envia un mensaje, esta función 
- * recibe el mensaje y la guarda en "payload[]".
+ Callback when message is received
+ and save the message in "payload[]".
  */
 void callback(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message arrived [");
@@ -110,7 +113,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
 
 
 void reconnect() {
-  //Ciclo cuando se requiere re-conectar
+
+  //When NodeMCU is disconnected tries to reconnect
   while (!client.connected()) {
     Serial.print("Intentado la conexion con MQTT...");
     // Attempt to connect
@@ -120,7 +124,7 @@ void reconnect() {
       Serial.print("fallido, rc=");
       Serial.print(client.state());
       Serial.println(" Reintentar en 5 segundos");
-      // Esperar 5 segundo para reintentar a conectar.
+      // Wait 5 seconds to reconnect
       delay(5000);
     }
   }
@@ -131,32 +135,31 @@ void loop() {
     reconnect();
   }
   client.loop(); 
-   //Se pregunta si se ha recibido un byte por el puerto serial 
-   //que va conectado al prototipo
+   //Check if a byte has been received in the serial port
    if (swSer.available() > 0) {
-   //Si llego algun dato se guarda en la varible "value"
+   //If a byte has arrived is saved in value variable
     value = swSer.read();
-   //Se convierte a una cadena el mensaje y se envia por mqtt.
+   //Is converted to String the message and is send with MQTT.
    if (value == '2')
    {
-    Valor = 0x00; //¡Bateria baja!
+    Valor = 0x00; //Running out of battery
    }
    else if (value == '3')
    {
-    Valor = 0x01; //¡Tapa abierta!
+    Valor = 0x01; //Cover open
    }
    else if (value == '1')
    {
-    Valor = 0x00; //KeepAlive, la tapa sigue cerrada.
+    Valor = 0x00; //KeepAlive, cover still closed
     snprintf (msg, 3, "%ld", Valor);
     Serial.print("Mensaje publicado: ");
     Serial.println(msg);
-    client.publish("1/keepAlive", msg);//Se envia mensaje al topic "#/keepAlive".
+    client.publish("1/keepAlive", msg);//Send message to the topic al topic "#/keepAlive".
    }
     snprintf (msg, 3, "%ld", Valor);
     Serial.print("Mensaje publicado: ");
     Serial.println(msg);
-    client.publish("1/status", msg);//Se envia mensaje al topic "#/status".
+    client.publish("1/status", msg);//Send message to the topic "#/status".
     delay(500);
       }
       
